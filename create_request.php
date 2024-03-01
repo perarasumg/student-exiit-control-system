@@ -1,0 +1,54 @@
+ <?php
+ include('connection.php');  
+    session_start();
+    $id= $_SESSION["Sid"];    
+    $subject=$_POST['subject'];
+    $reason=$_POST['letterContent'];
+     $date=date("d-M-Y");
+    ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status</title>
+</head>
+<body><?php
+        $sql = "SELECT `request` FROM permission_history WHERE student_id='$id' and date='$date' and request=0";
+        $result = mysqli_query($con, $sql);
+        $row = mysqli_fetch_array($result, MYSQLI_ASSOC); 
+        $history_count=mysqli_num_rows($result);  
+        echo $history_count;
+    // $sql = "select * from students where sid='$id' and  permission=0";
+    // $sql = "select * from students where sid='$id' and  permission=1 or permission=2";
+    $sql = "select * from students where sid='$id'";
+        $result = mysqli_query($con, $sql);
+        $row = mysqli_fetch_array($result, MYSQLI_ASSOC); 
+        $permission=$row['permission'];
+         $sname=$row['student_name']; 
+         $department=$row['course'];
+        $count = mysqli_num_rows($result);  
+        if($count == 1 && $permission==1 ||  $permission==2){
+            if($permission==1){
+                echo"accepted";
+            }else if($permission==2){
+                echo"have already pending request";
+            }
+        }else if($count==1 && $permission==0 || $history_count==0){
+           $request=0;
+           date_default_timezone_set("Asia/Calcutta");   //India time (GMT+5:30)
+           $time= date('H:i:s');
+           $sql = "UPDATE `students` SET `permission`='2' WHERE `sid`='$id';";
+           $result = mysqli_query($con, $sql);
+           $sql = " INSERT INTO `permission_history`(`student_id`, `sname`, `date`, `reason`, `request`, `time_of_request`, `time_of_get_permission`, `out_time`, `department`) 
+           VALUES ('$id','$sname','$date','$reason',$request,'$time','0','inside','$department')";
+           $result = mysqli_query($con, $sql);
+            header('Location:status.php');
+    }else{
+        echo "nothing happens";
+        echo "count row :".$count;
+        echo "permission".$permission;
+    }
+            ?>
+</body>
+</html>
